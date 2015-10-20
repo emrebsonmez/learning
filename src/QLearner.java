@@ -20,7 +20,6 @@ public class QLearner {
         this.step = step;
         this.maze = maze;
         Q = new double[maze.length][maze.length][4];
-        System.out.println(maze[5][6]);
         startX = 8;
         startY = 8;
     }
@@ -29,8 +28,12 @@ public class QLearner {
         SimpleMaze m = new SimpleMaze();
         int[][] maze = m.generateMaze();
         QLearner q = new QLearner(9, -1, maze);
+
         try {
-            q.qLearning();
+            ArrayList<int[]> result = q.qLearning();
+            for(int[] k:result){
+                assert(maze[k[0]][k[1]] != 1);
+            }
         } catch (MazeException e) {
             e.printStackTrace();
         }
@@ -42,7 +45,8 @@ public class QLearner {
      * actions: proceed to any surrounding cell that is not 1
      * execute action, update Q table
      */
-    public void qLearning() throws MazeException {
+    public ArrayList<int[]> qLearning() throws MazeException {
+        ArrayList<int[]> log = new ArrayList<>();
         // state: current cell
         // actions: proceed to any surrounding cell that is not 1
         // calculate q learning
@@ -55,34 +59,32 @@ public class QLearner {
         current[1] = 8;
         int x = current[0]; // goes down
         int y = current[1]; // goes across
-
+        log.add(current);
         while (maze[x][y] != 9) {
             int randomNum = randomInt(100, r1);
             int direction;
             int[] next;
             if (randomNum < epsilon) { // pick at random from valid cells
-                System.out.println("randomNum < epsilon (choosing randomly)");
                 ArrayList<int[]> validCells = getValidCells(x, y);
                 int size = validCells.size();
                 int randomNum2 = randomInt(size, r2);
                 next = validCells.get(randomNum2);
                 direction = getDirection(current, next);
             } else { // pick max of Q[x][y]
-                System.out.println("randomNum > epsilon (choosing max)");
                 next = maxQCell(current);
                 direction = getDirection(current,next);
 
             }
-            System.out.println("HELLOOO " + next[0] + " " + next[1]);
+            log.add(next);
             int reward = getReward(next[0],next[1]);
-            System.out.println("next x: " + next[0] + " next y: " + next[1] + " next value " + reward);
             updateQ(x, y, direction, reward);
             steps++;
-
             current = next;
             x = current[0];
             y = current[1];
         }
+        assert(log.size() == steps);
+        return log;
     }
 
     int randomInt(int limit, Random r){
@@ -91,7 +93,6 @@ public class QLearner {
 
     ArrayList<int[]> getValidCells(int x, int y) {
         ArrayList<int[]> cells = new ArrayList<>();
-        System.out.println(maze.length);
         if(x+1 < maze.length){
             int[] ret = new int[2];
             ret[0] = x+1;
@@ -126,9 +127,6 @@ public class QLearner {
             if(maze[ret[0]][ret[1]] != 1){
                 cells.add(ret);
             }
-        }
-        for(int[] k:cells){
-            System.out.println(k[0] + " " + k[1]);
         }
         return cells;
     }
@@ -200,7 +198,6 @@ public class QLearner {
         double max = -1;
         ArrayList<int[]> valid = getValidCells(from[0],from[1]);
         for(int[] k:valid){
-            System.out.println(from[0] + " " + from[1] + " " + getDirection(from,k));
             if(Q[from[0]][from[1]][getDirection(from,k)] >= max){
                 max = Q[from[0]][from[1]][getDirection(from,k)];
                 ret = k;
@@ -232,7 +229,6 @@ public class QLearner {
             return step;
         }
         if(maze[x][y] == 9){
-            System.out.println("x: " + x + "y: " + y);
             return reward;
         }
         throw new MazeException("Invalid cell to obtain reward from (" + x + ", " + y + ")");
