@@ -28,63 +28,59 @@ public class QLearner {
         SimpleMaze m = new SimpleMaze();
         int[][] maze = m.generateMaze();
         QLearner q = new QLearner(9, -1, maze);
-
         try {
-            ArrayList<int[]> result = q.qLearning();
-            for(int[] k:result){
-                assert(maze[k[0]][k[1]] != 1);
-            }
+            q.qLearning(1000);
         } catch (MazeException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * runs q learning on maze
-     * state: current cell
-     * actions: proceed to any surrounding cell that is not 1
-     * execute action, update Q table
+     * runs Q learning n times
+     * @param runs
+     * @throws MazeException
      */
-    public ArrayList<int[]> qLearning() throws MazeException {
+    public void qLearning(int runs) throws MazeException {
         ArrayList<int[]> log = new ArrayList<>();
         // state: current cell
         // actions: proceed to any surrounding cell that is not 1
         // calculate q learning
         Random r1 = new Random();
         Random r2 = new Random();
+        for(int i = 0; i < runs; i++) {
+            int steps = 0;
+            int[] current = new int[2];
+            current[0] = 8;
+            current[1] = 8;
+            int x = current[0]; // goes down
+            int y = current[1]; // goes across
+            log.add(current);
+            while (maze[x][y] != 9) {
+                int randomNum = randomInt(100, r1);
+                int direction;
+                int[] next;
+                if (randomNum < epsilon) { // pick at random from valid cells
+                    ArrayList<int[]> validCells = getValidCells(x, y);
+                    int size = validCells.size();
+                    int randomNum2 = randomInt(size, r2);
+                    next = validCells.get(randomNum2);
+                    direction = getDirection(current, next);
+                } else { // pick max of Q[x][y]
+                    next = maxQCell(current);
+                    direction = getDirection(current, next);
 
-        int steps = 0;
-        int[] current = new int[2];
-        current[0] = 8;
-        current[1] = 8;
-        int x = current[0]; // goes down
-        int y = current[1]; // goes across
-        log.add(current);
-        while (maze[x][y] != 9) {
-            int randomNum = randomInt(100, r1);
-            int direction;
-            int[] next;
-            if (randomNum < epsilon) { // pick at random from valid cells
-                ArrayList<int[]> validCells = getValidCells(x, y);
-                int size = validCells.size();
-                int randomNum2 = randomInt(size, r2);
-                next = validCells.get(randomNum2);
-                direction = getDirection(current, next);
-            } else { // pick max of Q[x][y]
-                next = maxQCell(current);
-                direction = getDirection(current,next);
-
+                }
+                log.add(next);
+                int reward = getReward(next[0], next[1]);
+                updateQ(x, y, direction, reward);
+                steps++;
+                current = next;
+                x = current[0];
+                y = current[1];
             }
-            log.add(next);
-            int reward = getReward(next[0],next[1]);
-            updateQ(x, y, direction, reward);
-            steps++;
-            current = next;
-            x = current[0];
-            y = current[1];
+            assert (log.size() == steps);
+            System.out.println("Run " + i + ", Steps: " + steps);
         }
-        assert(log.size() == steps);
-        return log;
     }
 
     int randomInt(int limit, Random r){
@@ -101,7 +97,6 @@ public class QLearner {
                 cells.add(ret);
             }
         }
-
         if(x-1 >= 0){
             int[] ret = new int[2];
             ret[0] = x-1;
@@ -110,7 +105,6 @@ public class QLearner {
                 cells.add(ret);
             }
         }
-
         if(y+1 < maze.length){
             int[] ret = new int[2];
             ret[0] = x;
@@ -119,7 +113,6 @@ public class QLearner {
                 cells.add(ret);
             }
         }
-
         if(y-1 >= 0){
             int[] ret = new int[2];
             ret[0] = x;
