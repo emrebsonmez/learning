@@ -1,0 +1,148 @@
+import java.util.ArrayList;
+import java.util.Random;
+
+/**
+ * Created by emresonmez on 11/9/15.
+ */
+public class LearnerUtils {
+    /**
+     * gets next cell from direction
+     * @param x
+     * @param y
+     * @param direction
+     * @return
+     */
+    protected int[] nextCell(int x, int y, int direction, int[][] maze) throws MazeException {
+        int[] ret = new int[2];
+        switch (direction) {
+            case 0:
+                ret[0] = x-1;
+                ret[1] = y;
+            case 1:
+                ret[0] = x;
+                ret[1] = y+1;
+            case 2:
+                ret[0] = x+1;
+                ret[1] = y;
+            case 3:
+                ret[0] = x;
+                ret[1] = y-1;
+        }
+        if(maze[ret[0]][ret[1]] == 1){
+            throw new MazeException("next cell error for (" + x + ", " + y + ", " + direction + ")");
+        }
+        return ret;
+    }
+
+    protected int randomInt(int limit, Random r){
+        return r.nextInt(limit);
+    }
+
+    protected ArrayList<int[]> getValidCells(int x, int y, int[][] maze) {
+        ArrayList<int[]> cells = new ArrayList<>();
+        if(x+1 < maze.length){
+            int[] ret = new int[2];
+            ret[0] = x+1;
+            ret[1] = y;
+            if(maze[ret[0]][ret[1]] != 1){
+                cells.add(ret);
+            }
+        }
+        if(x-1 >= 0){
+            int[] ret = new int[2];
+            ret[0] = x-1;
+            ret[1] = y;
+            if(maze[ret[0]][ret[1]] != 1){
+                cells.add(ret);
+            }
+        }
+        if(y+1 < maze.length){
+            int[] ret = new int[2];
+            ret[0] = x;
+            ret[1] = y+1;
+            if(maze[ret[0]][ret[1]] != 1){
+                cells.add(ret);
+            }
+        }
+        if(y-1 >= 0){
+            int[] ret = new int[2];
+            ret[0] = x;
+            ret[1] = y-1;
+            if(maze[ret[0]][ret[1]] != 1){
+                cells.add(ret);
+            }
+        }
+        return cells;
+    }
+
+    /**
+     * returns direction
+     * @param from
+     * @param to
+     * @return
+     */
+    protected int getDirection(int[] from, int[] to) throws MazeException {
+        if (from[0] > to[0]) { // up
+            return 0;
+        }
+        if (from[1] < to[1]) { // right
+            return 1;
+        }
+        if (from[0] < to[0]) { // down
+            return 2;
+        }
+        if (from[1] > to[1]) { // left
+            return 3;
+        }
+        throw new MazeException("Invalid direction.");
+    }
+
+    /**
+     * returns cell with max q value
+     * @param from
+     * @param maze
+     * @param Q
+     * @return
+     * @throws MazeException
+     */
+    protected int[] maxQCell(int[] from, int[][] maze, double[][][] Q) throws MazeException {
+        int[] ret = new int[2];
+        double max = -1;
+        ArrayList<int[]> valid = getValidCells(from[0],from[1],maze);
+        for(int[] k:valid){
+            if(Q[from[0]][from[1]][getDirection(from,k)] >= max){
+                max = Q[from[0]][from[1]][getDirection(from,k)];
+                ret = k;
+            }
+        }
+        return ret;
+    }
+
+    protected double maxQVal(int x, int y, double[][][] Q) {
+        double max = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < 4; i++) {
+            double val = Q[x][y][i];
+            if (val > max){
+                max = val;
+            }
+        }
+        return max;
+    }
+
+    /**
+     * reward for going to a certain cell
+     * @TODO replace 0 and 9 with vars
+     * @param x
+     * @param y
+     * @return
+     */
+    protected int getReward(int x, int y, int[][] maze, int step, int reward) throws MazeException {
+        if(maze[x][y] == 0){
+            return step;
+        }
+        if(maze[x][y] == 9){
+            return reward;
+        }
+        throw new MazeException("Invalid cell to obtain reward from (" + x + ", " + y + ")");
+    }
+}

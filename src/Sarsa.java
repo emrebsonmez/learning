@@ -2,9 +2,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * Created by emresonmez on 9/21/15.
+ * Created by emresonmez on 11/9/15.
  */
-public class QLearner {
+public class Sarsa {
     private int reward;
     private int step;
     private int[][] maze;
@@ -17,7 +17,7 @@ public class QLearner {
     private LearnerUtils learnerUtils;
 
 
-    public QLearner(int reward, int step, int[][] maze) {
+    public Sarsa(int reward, int step, int[][] maze) {
         this.reward = reward;
         this.step = step;
         this.maze = maze;
@@ -32,7 +32,7 @@ public class QLearner {
      * @param runs
      * @throws MazeException
      */
-    public void qLearning(int runs) throws MazeException {
+    public void sarsaLearning(int runs) throws MazeException {
         ArrayList<int[]> log = new ArrayList<>();
         // for sarsa learning — change order of requesting action
         // state: current cell
@@ -48,28 +48,49 @@ public class QLearner {
             int x = current[0]; // goes down
             int y = current[1]; // goes across
             log.add(current);
+            int direction;
+            int reward;
+            int randomNum = learnerUtils.randomInt(100, r1);
+            int[] next;
+            if (randomNum < epsilon) { // pick at random from valid cells
+                ArrayList<int[]> validCells = learnerUtils.getValidCells(x, y, maze);
+                int size = validCells.size();
+                int randomNum2 = learnerUtils.randomInt(size, r2);
+                next = validCells.get(randomNum2);
+                direction = learnerUtils.getDirection(current, next);
+            } else { // pick max of Q[x][y]
+                next = learnerUtils.maxQCell(current,maze,Q);
+                direction = learnerUtils.getDirection(current, next);
+            }
+            log.add(next);
+            reward = learnerUtils.getReward(next[0], next[1],maze,-1,9);
+            // what to do with next...?
+            steps++;
+            current = next;
+            x = current[0];
+            y = current[1];
+
             while (maze[x][y] != 9) {
-                int randomNum = learnerUtils.randomInt(100, r1);
-                int direction;
-                int[] next;
+                randomNum = learnerUtils.randomInt(100, r1);
+                int nextDirection;
                 if (randomNum < epsilon) { // pick at random from valid cells
                     ArrayList<int[]> validCells = learnerUtils.getValidCells(x, y, maze);
                     int size = validCells.size();
                     int randomNum2 = learnerUtils.randomInt(size, r2);
                     next = validCells.get(randomNum2);
-                    direction = learnerUtils.getDirection(current, next);
+                    nextDirection = learnerUtils.getDirection(current, next);
                 } else { // pick max of Q[x][y]
-                    next = learnerUtils.maxQCell(current, maze, Q);
-                    direction = learnerUtils.getDirection(current, next);
-
+                    next = learnerUtils.maxQCell(current,maze,Q);
+                    nextDirection = learnerUtils.getDirection(current, next);
                 }
                 log.add(next);
-                int reward = learnerUtils.getReward(next[0], next[1],maze,-1,9);
-                updateQ(x, y,next[0],next[1],direction, reward);
+                int nextReward = learnerUtils.getReward(next[0], next[1],maze,-1,9);
+                updateQsarsa(x,y,direction,next[0],next[1],nextDirection,reward);
                 steps++;
                 current = next;
                 x = current[0];
                 y = current[1];
+                direction = nextDirection;
             }
             if(i == 850){
                 epsilon = 0;
@@ -79,15 +100,16 @@ public class QLearner {
         }
     }
 
+
     /**
-     * updates Q matrix
+     * updates Q sarsa
      * @param x
      * @param y
      * @param direction
      * @param r
      */
-    void updateQ(int x, int y, int nextX, int nextY, int direction, int r) {
-        Q[x][y][direction] += alpha * (r + gamma * learnerUtils.maxQVal(nextX,nextY,Q) - Q[x][y][direction]);
+    void updateQsarsa(int x, int y, int direction, int nextX, int nextY, int nextDirection, int r) {
+        Q[x][y][direction] += alpha * (r + gamma * Q[nextX][nextY][nextDirection] - Q[x][y][direction]);
     }
 
 }
