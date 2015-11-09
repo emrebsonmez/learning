@@ -99,6 +99,7 @@ public class LearnerUtils {
 
     /**
      * returns cell with max q value
+     * breaks ties randomly
      * @param from
      * @param maze
      * @param Q
@@ -109,11 +110,26 @@ public class LearnerUtils {
         int[] ret = new int[2];
         double max = -1;
         ArrayList<int[]> valid = getValidCells(from[0],from[1],maze);
-        for(int[] k:valid){
-            if(Q[from[0]][from[1]][getDirection(from,k)] >= max){
-                max = Q[from[0]][from[1]][getDirection(from,k)];
-                ret = k;
+        Random r = new Random();
+        if(Q != null){
+            for(int[] k:valid){
+                double qValue = Q[from[0]][from[1]][getDirection(from,k)];
+                if(qValue > max){
+                    max = qValue;
+                    ret = k;
+                }
+                if(qValue == max){ // pick randomly
+                    int randomInt = randomInt(1,r);
+                    if(randomInt == 1){ // replace
+                        max = qValue;
+                        ret = k;
+                    }
+                }
+
             }
+        }else{ // if q is null pick randomly as well
+            int randomInt = randomInt(valid.size(),r);
+            ret = valid.get(randomInt);
         }
         return ret;
     }
