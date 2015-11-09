@@ -45,31 +45,11 @@ public class Sarsa {
             int[] current = new int[2];
             current[0] = 8;
             current[1] = 8;
-            int x = current[0]; // goes down
-            int y = current[1]; // goes across
-            log.add(current);
-            int direction;
-            int reward;
-            int randomNum = learnerUtils.randomInt(100, r1);
-            int[] next;
-            if (randomNum < epsilon) { // pick at random from valid cells
-                ArrayList<int[]> validCells = learnerUtils.getValidCells(x, y, maze);
-                int size = validCells.size();
-                int randomNum2 = learnerUtils.randomInt(size, r2);
-                next = validCells.get(randomNum2);
-                direction = learnerUtils.getDirection(current, next);
-            } else { // pick max of Q[x][y]
-                next = learnerUtils.maxQCell(current,maze,Q);
-                direction = learnerUtils.getDirection(current, next);
-            }
-            log.add(next);
-            reward = learnerUtils.getReward(next[0], next[1],maze,-1,9);
-            // what to do with next...?
-            steps++;
-            current = next;
-            x = current[0];
-            y = current[1];
-
+            int[] next = learnerUtils.maxQCell(current,maze,Q);
+            int direction = learnerUtils.getDirection(current,next);
+            int x = current[0];
+            int y = current[1];
+            int randomNum;
             while (maze[x][y] != 9) {
                 randomNum = learnerUtils.randomInt(100, r1);
                 int nextDirection;
@@ -100,7 +80,6 @@ public class Sarsa {
         }
     }
 
-
     /**
      * updates Q sarsa
      * @param x
@@ -108,7 +87,7 @@ public class Sarsa {
      * @param direction
      * @param r
      */
-    void updateQsarsa(int x, int y, int direction, int nextX, int nextY, int nextDirection, int r) {
+    private void updateQsarsa(int x, int y, int direction, int nextX, int nextY, int nextDirection, int r) {
         Q[x][y][direction] += alpha * (r + gamma * Q[nextX][nextY][nextDirection] - Q[x][y][direction]);
     }
 
