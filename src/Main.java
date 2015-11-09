@@ -7,7 +7,8 @@ public class Main {
         int[][] maze = m.generateMaze();
         Main main = new Main();
 //        main.runQ(maze);
-        main.runSarsa(maze);
+//        main.runSarsa(maze);
+        main.runSarsaLambda(maze);
     }
 
     private void runQ(int[][] maze){
@@ -23,6 +24,15 @@ public class Main {
         Sarsa sarsa = new Sarsa(9,-1,maze);
         try {
             sarsa.sarsaLearning(1000);
+        } catch (MazeException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void runSarsaLambda(int[][] maze){
+        SarsaLambda sarsaLambda = new SarsaLambda(9,-1,maze);
+        try {
+            sarsaLambda.sarsaLambdaLearning(1000);
         } catch (MazeException e) {
             e.printStackTrace();
         }
