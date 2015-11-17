@@ -34,11 +34,6 @@ public class Sarsa {
      */
     public void sarsaLearning(int runs) throws MazeException {
         ArrayList<int[]> log = new ArrayList<>();
-        // for sarsa learning — change order of requesting action
-        // state: current cell
-        // actions: proceed to any surrounding cell that is not 1
-        // calculate q learning
-
         // foreach episode do
         //  x <- initial state
         //  a <- Greedy(x)
@@ -50,61 +45,39 @@ public class Sarsa {
         //      a <- a'
         //  end
         // end
-        Random r1 = new Random();
+
         for(int i = 0; i < runs; i++) {
             int steps = 0;
+            // initial state
             int[] current = new int[2];
             current[0] = 8;
             current[1] = 8;
-
+            // initial a
             int[] next = new int[2];
             next[0] = 7;
             next[1] = 7;
             int direction = learnerUtils.getDirection(current,next);
+            int nextDirection;
 
-            int x = current[0];
-            int y = current[1];
-            int randomNum;
+            while(maze[current[0]][current[1]] != 9){
+                // get reward
+                int reward =learnerUtils.getReward(next[0],next[1],maze,-1,9);
+                // get x',a'
+                int[] nextPrime = new int[2];
+                nextPrime = greedy(next);
 
-            while (maze[x][y] != 9) {
-                assert(maze[x][y] != 1);
-                randomNum = learnerUtils.randomInt(100, r1);
-                int nextDirection;
-                //execute move
-                int xPrime = next[0];
-                int yPrime = next[1];
-                System.out.println(maze[x][y]);
-                System.out.println(maze[xPrime][yPrime]);
-
-
-                int reward = learnerUtils.getReward(xPrime,yPrime,maze,-1,9);
-                // get next direction
-                int[] nextPrime;
-                if (randomNum < epsilon) { // pick at random from valid cells
-                    ArrayList<int[]> validCells = learnerUtils.getValidCells(x, y, maze);
-                    int size = validCells.size();
-                    int randomNum2 = learnerUtils.randomInt(size, r1);
-                    for(int[] k:validCells){
-                        System.out.println("x: " + k[0] + " y: " + k[1]);
-                    }
-                    nextPrime = validCells.get(randomNum2);
-                    System.out.println("here x: " + x + " y: " + y + " current[x]: " + current[0] + " current[y] " + current[1]);
-                    nextDirection = learnerUtils.getDirection(current, next);
-                } else { // pick max of Q[x][y]
-                    System.out.println("hello x: " + x + " y: " + y);
-                    System.out.println(maze[x][y]);
-                    nextPrime = learnerUtils.maxQCell(current,maze,Q);
-                    nextDirection = learnerUtils.getDirection(current, next);
-                }
+                // update Q
                 log.add(next);
-                updateQsarsa(x, y, direction, xPrime, yPrime, nextDirection, reward, maze[x][y] == 9);
-                steps++;
+                nextDirection = learnerUtils.getDirection(next,nextPrime);
+                updateQsarsa(current[0],current[1],direction,next[0],next[1],nextDirection,reward,maze[current[0]][current[1]]==9);
+
+                // x <- x'
                 current = next;
-                x = xPrime;
-                y = yPrime;
-                direction = nextDirection;
-                System.out.println("step " + steps + " x: " + x + " y: " + y + " direction: " + direction);
                 next = nextPrime;
+
+                // a <- a'
+                direction = nextDirection;
+                steps++;
             }
             if(i == 850){
                 epsilon = 0;
@@ -114,8 +87,19 @@ public class Sarsa {
         }
     }
 
+    private int[] greedy(int[] cell) throws MazeException {
+        int randomNum = learnerUtils.randomInt(100, new Random());
+        if(randomNum < epsilon) {
+            ArrayList<int[]> validCells = learnerUtils.getValidCells(cell[0],cell[1],maze);
+            int randomNum2 = learnerUtils.randomInt(validCells.size(),new Random());
+            return validCells.get(randomNum2);
+        }else {
+            return learnerUtils.maxQCell(cell,maze,Q);
+        }
+    }
+
     /**
-     * updates Q sarsa
+     * updates Q sarsa (don't include gammaQ if end of episode)
      * @param x
      * @param y
      * @param direction
@@ -127,7 +111,7 @@ public class Sarsa {
         }else{
             Q[x][y][direction] += alpha * (r + gamma * Q[nextX][nextY][nextDirection] - Q[x][y][direction]);
         }
-        // don't include gammaQ if end of episode
+
     }
 
 }

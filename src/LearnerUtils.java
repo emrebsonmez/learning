@@ -18,15 +18,19 @@ public class LearnerUtils {
             case 0:
                 ret[0] = x-1;
                 ret[1] = y;
+                break;
             case 1:
                 ret[0] = x;
                 ret[1] = y+1;
+                break;
             case 2:
                 ret[0] = x+1;
                 ret[1] = y;
+                break;
             case 3:
                 ret[0] = x;
                 ret[1] = y-1;
+                break;
         }
         if(maze[ret[0]][ret[1]] == 1){
             throw new MazeException("next cell error for (" + x + ", " + y + ", " + direction + ")");
@@ -110,7 +114,7 @@ public class LearnerUtils {
      */
     protected int[] maxQCell(int[] from, int[][] maze, double[][][] Q) throws MazeException {
         int[] ret = new int[2];
-        double max = -1;
+        double max = Double.NEGATIVE_INFINITY;
         ArrayList<int[]> valid = getValidCells(from[0],from[1],maze);
         Random r = new Random();
         if(Q != null){
@@ -127,10 +131,9 @@ public class LearnerUtils {
                         ret = k;
                     }
                 }
-
             }
         }else{ // if q is null pick randomly as well
-            int randomInt = randomInt(valid.size(),r);
+            int randomInt = 0 + (int)(Math.random()*valid.size());
             ret = valid.get(randomInt);
         }
         return ret;
