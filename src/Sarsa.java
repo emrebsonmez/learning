@@ -4,6 +4,8 @@ import java.util.Random;
 /**
  * Implements sarsa learning
  *
+ * Hits 9 steps consistently at 847
+ *
  * foreach episode do
  *    x <- initial state
  *    a <- greedy(x)
@@ -50,7 +52,7 @@ public class Sarsa {
         ArrayList<int[]> log = new ArrayList<>();
 
         for(int i = 0; i < runs; i++) {
-            int steps = 0;
+            int steps = 1;
             // initial state
             int[] current = new int[2];
             current[0] = 8;

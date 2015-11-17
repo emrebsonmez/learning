@@ -166,4 +166,15 @@ public class LearnerUtils {
         }
         throw new MazeException("Invalid cell to obtain reward from (" + x + ", " + y + ")");
     }
+
+    protected int[] greedy(int[] cell, int[][] maze, double[][][] Q, double epsilon) throws MazeException {
+        int randomNum = randomInt(100, new Random());
+        if(randomNum < epsilon) {
+            ArrayList<int[]> validCells = getValidCells(cell[0],cell[1],maze);
+            int randomNum2 = randomInt(validCells.size(),new Random());
+            return validCells.get(randomNum2);
+        }else {
+            return maxQCell(cell,maze,Q);
+        }
+    }
 }
