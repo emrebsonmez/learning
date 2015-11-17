@@ -38,39 +38,73 @@ public class Sarsa {
         // state: current cell
         // actions: proceed to any surrounding cell that is not 1
         // calculate q learning
+
+        // foreach episode do
+        //  x <- initial state
+        //  a <- Greedy(x)
+        //  while x is not terminal do
+        //      r,x' <- Step(a)
+        //      a' <- Greedy(x')
+        //      Q(x,a) <- Q(x,a) + alpha(r + gamma*Q(x',a')-Q(x,a))
+        //      x <- x'
+        //      a <- a'
+        //  end
+        // end
         Random r1 = new Random();
-        Random r2 = new Random();
         for(int i = 0; i < runs; i++) {
             int steps = 0;
             int[] current = new int[2];
             current[0] = 8;
             current[1] = 8;
-            int[] next = learnerUtils.maxQCell(current,maze,Q);
+
+            int[] next = new int[2];
+            next[0] = 7;
+            next[1] = 7;
             int direction = learnerUtils.getDirection(current,next);
+
             int x = current[0];
             int y = current[1];
             int randomNum;
+
             while (maze[x][y] != 9) {
+                assert(maze[x][y] != 1);
                 randomNum = learnerUtils.randomInt(100, r1);
                 int nextDirection;
+                //execute move
+                int xPrime = next[0];
+                int yPrime = next[1];
+                System.out.println(maze[x][y]);
+                System.out.println(maze[xPrime][yPrime]);
+
+
+                int reward = learnerUtils.getReward(xPrime,yPrime,maze,-1,9);
+                // get next direction
+                int[] nextPrime;
                 if (randomNum < epsilon) { // pick at random from valid cells
                     ArrayList<int[]> validCells = learnerUtils.getValidCells(x, y, maze);
                     int size = validCells.size();
-                    int randomNum2 = learnerUtils.randomInt(size, r2);
-                    next = validCells.get(randomNum2);
+                    int randomNum2 = learnerUtils.randomInt(size, r1);
+                    for(int[] k:validCells){
+                        System.out.println("x: " + k[0] + " y: " + k[1]);
+                    }
+                    nextPrime = validCells.get(randomNum2);
+                    System.out.println("here x: " + x + " y: " + y + " current[x]: " + current[0] + " current[y] " + current[1]);
                     nextDirection = learnerUtils.getDirection(current, next);
                 } else { // pick max of Q[x][y]
-                    next = learnerUtils.maxQCell(current,maze,Q);
+                    System.out.println("hello x: " + x + " y: " + y);
+                    System.out.println(maze[x][y]);
+                    nextPrime = learnerUtils.maxQCell(current,maze,Q);
                     nextDirection = learnerUtils.getDirection(current, next);
                 }
                 log.add(next);
-                int nextReward = learnerUtils.getReward(next[0], next[1],maze,-1,9);
-                updateQsarsa(x,y,direction,next[0],next[1],nextDirection,reward);
+                updateQsarsa(x, y, direction, xPrime, yPrime, nextDirection, reward, maze[x][y] == 9);
                 steps++;
                 current = next;
-                x = current[0];
-                y = current[1];
+                x = xPrime;
+                y = yPrime;
                 direction = nextDirection;
+                System.out.println("step " + steps + " x: " + x + " y: " + y + " direction: " + direction);
+                next = nextPrime;
             }
             if(i == 850){
                 epsilon = 0;
@@ -87,8 +121,13 @@ public class Sarsa {
      * @param direction
      * @param r
      */
-    private void updateQsarsa(int x, int y, int direction, int nextX, int nextY, int nextDirection, int r) {
-        Q[x][y][direction] += alpha * (r + gamma * Q[nextX][nextY][nextDirection] - Q[x][y][direction]);
+    private void updateQsarsa(int x, int y, int direction, int nextX, int nextY, int nextDirection, int r, boolean end) {
+        if(end){
+            Q[x][y][direction] += alpha * (r - Q[x][y][direction]);
+        }else{
+            Q[x][y][direction] += alpha * (r + gamma * Q[nextX][nextY][nextDirection] - Q[x][y][direction]);
+        }
+        // don't include gammaQ if end of episode
     }
 
 }

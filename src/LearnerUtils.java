@@ -82,6 +82,7 @@ public class LearnerUtils {
      * @return
      */
     protected int getDirection(int[] from, int[] to) throws MazeException {
+        assert(!from.equals(to));
         if (from[0] > to[0]) { // up
             return 0;
         }
@@ -94,6 +95,7 @@ public class LearnerUtils {
         if (from[1] > to[1]) { // left
             return 3;
         }
+        System.out.println("from: " + from[0] + " " + from[1] + " to: " + to[0] + " " + to[1]);
         throw new MazeException("Invalid direction.");
     }
 

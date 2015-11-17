@@ -7,8 +7,8 @@ public class Main {
         int[][] maze = m.generateMaze();
         Main main = new Main();
 //        main.runQ(maze);
-//        main.runSarsa(maze);
-        main.runSarsaLambda(maze);
+        main.runSarsa(maze);
+//        main.runSarsaLambda(maze);
     }
 
     private void runQ(int[][] maze){
