@@ -2,11 +2,25 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
+ * Implements sarsa learning
+ *
+ * foreach episode do
+ *    x <- initial state
+ *    a <- greedy(x)
+ *    while x is not terminal do
+ *        r,x' <- Step(a)
+ *       a' <- Greedy(x')
+ *       Q(x,a) <- Q(x,a) + alpha(r + gamma*Q(x',a')-Q(x,a))
+ *       x <- x'
+ *       a <- a'
+ *   end
+ * end
+ *
  * Created by emresonmez on 11/9/15.
  */
 public class Sarsa {
-    private int reward;
-    private int step;
+    private int goalReward;
+    private int stepPenalty;
     private int[][] maze;
     private double[][][] Q; // 0 1 2 3 for north, east, south, west
     private int startX;
@@ -18,8 +32,8 @@ public class Sarsa {
 
 
     public Sarsa(int reward, int step, int[][] maze) {
-        this.reward = reward;
-        this.step = step;
+        this.goalReward = reward;
+        this.stepPenalty = step;
         this.maze = maze;
         Q = new double[maze.length][maze.length][4];
         startX = 8;
@@ -34,17 +48,6 @@ public class Sarsa {
      */
     public void sarsaLearning(int runs) throws MazeException {
         ArrayList<int[]> log = new ArrayList<>();
-        // foreach episode do
-        //  x <- initial state
-        //  a <- Greedy(x)
-        //  while x is not terminal do
-        //      r,x' <- Step(a)
-        //      a' <- Greedy(x')
-        //      Q(x,a) <- Q(x,a) + alpha(r + gamma*Q(x',a')-Q(x,a))
-        //      x <- x'
-        //      a <- a'
-        //  end
-        // end
 
         for(int i = 0; i < runs; i++) {
             int steps = 0;
@@ -61,7 +64,7 @@ public class Sarsa {
 
             while(maze[current[0]][current[1]] != 9){
                 // get reward
-                int reward =learnerUtils.getReward(next[0],next[1],maze,-1,9);
+                int reward =learnerUtils.getReward(next[0],next[1],maze,stepPenalty,goalReward);
                 // get x',a'
                 int[] nextPrime = new int[2];
                 nextPrime = greedy(next);
@@ -69,7 +72,7 @@ public class Sarsa {
                 // update Q
                 log.add(next);
                 nextDirection = learnerUtils.getDirection(next,nextPrime);
-                updateQsarsa(current[0],current[1],direction,next[0],next[1],nextDirection,reward,maze[current[0]][current[1]]==9);
+                updateQsarsa(current[0],current[1],direction,next[0],next[1],nextDirection,reward,maze[current[0]][current[1]]==goalReward);
 
                 // x <- x'
                 current = next;
