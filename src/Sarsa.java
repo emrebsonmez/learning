@@ -52,16 +52,15 @@ public class Sarsa {
         ArrayList<int[]> log = new ArrayList<>();
 
         for(int i = 0; i < runs; i++) {
-            int steps = 1;
+            int steps = 0;
             // initial state
             int[] current = new int[2];
             current[0] = 8;
             current[1] = 8;
             // initial a
-            int[] next = new int[2];
-            next[0] = 7;
-            next[1] = 7;
+            int[] next = learnerUtils.greedy(current, maze, Q, epsilon);
             int direction = learnerUtils.getDirection(current,next);
+
             int nextDirection;
 
             while(maze[current[0]][current[1]] != 9){
@@ -69,7 +68,7 @@ public class Sarsa {
                 int reward =learnerUtils.getReward(next[0],next[1],maze,stepPenalty,goalReward);
                 // get x',a'
                 int[] nextPrime = new int[2];
-                nextPrime = greedy(next);
+                nextPrime = learnerUtils.greedy(next,maze,Q,epsilon);
 
                 // update Q
                 log.add(next);
@@ -89,17 +88,6 @@ public class Sarsa {
             }
             assert (log.size() == steps);
             System.out.println("Run " + i + ", Steps: " + steps);
-        }
-    }
-
-    private int[] greedy(int[] cell) throws MazeException {
-        int randomNum = learnerUtils.randomInt(100, new Random());
-        if(randomNum < epsilon) {
-            ArrayList<int[]> validCells = learnerUtils.getValidCells(cell[0],cell[1],maze);
-            int randomNum2 = learnerUtils.randomInt(validCells.size(),new Random());
-            return validCells.get(randomNum2);
-        }else {
-            return learnerUtils.maxQCell(cell,maze,Q);
         }
     }
 

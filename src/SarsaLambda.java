@@ -2,11 +2,24 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
+ * Implements Sarsa(Lambda) learning.
+ * intialize s, a
+ * foreach do:
+ *  take action a, observe r, s'
+ *  choose a' from s' using Q
+ *  delta <- r + gamma*Q(s',a') - Q(s,a)
+ *  e(s,a) <- 1
+ *  for all s,a:
+ *      Q(s,a) <- Q(s,a) + alpha*delta*e(s,a)
+ *      e(s,a) <- gamma*lambda*e(s,a)
+ *  s <- s'
+ *  a <- a'
+ *
  * Created by emresonmez on 11/9/15.
  */
 public class SarsaLambda {
-    private int reward;
-    private int step;
+    private int goalReward;
+    private int stepPenalty;
     private int[][] maze;
     private double[][][] Q; // 0 1 2 3 for north, east, south, west
     private double[][][] E;
@@ -14,13 +27,14 @@ public class SarsaLambda {
     private int startY;
     private double alpha = 0.1;
     private double gamma = 0.95;
+    private double lambda = 0.9;
     private double epsilon = 15;
     private LearnerUtils learnerUtils;
 
 
     public SarsaLambda(int reward, int step, int[][] maze) {
-        this.reward = reward;
-        this.step = step;
+        this.goalReward = reward;
+        this.stepPenalty = step;
         this.maze = maze;
         Q = new double[maze.length][maze.length][4];
         startX = 8;
@@ -35,46 +49,47 @@ public class SarsaLambda {
      */
     public void sarsaLambdaLearning(int runs) throws MazeException {
         ArrayList<int[]> log = new ArrayList<>();
-        Random r1 = new Random();
-        Random r2 = new Random();
-        for(int i = 0; i < runs; i++) {
+
+        for(int i = 0; i < runs; i++){
             E = new double[maze.length][maze.length][4];
             int steps = 0;
-            // initialize s
+            // initial state
             int[] current = new int[2];
-            current[0] = 8;
-            current[1] = 8;
-            int[] next = learnerUtils.maxQCell(current,maze,Q);
-            // initialize action
+            current[0] = startX;
+            current[1] = startY;
+
+            // initial a
+            int[] next = learnerUtils.greedy(current, maze, Q, epsilon);
+
             int direction = learnerUtils.getDirection(current,next);
-            int x = current[0];
-            int y = current[1];
-            int randomNum;
-            double delta;
-            while (maze[x][y] != 9) {
-                randomNum = learnerUtils.randomInt(100, r1);
-                int nextDirection;
-                if (randomNum < epsilon) { // pick at random from valid cells
-                    ArrayList<int[]> validCells = learnerUtils.getValidCells(x, y, maze);
-                    int size = validCells.size();
-                    int randomNum2 = learnerUtils.randomInt(size, r2);
-                    next = validCells.get(randomNum2);
-                    nextDirection = learnerUtils.getDirection(current, next);
-                } else { // pick max of Q[x][y]
-                    next = learnerUtils.maxQCell(current,maze,Q);
-                    nextDirection = learnerUtils.getDirection(current, next);
-                }
+            int nextDirection;
+
+            while(maze[current[0]][current[1]] != 9) {
+                // get reward
+                int reward = learnerUtils.getReward(next[0], next[1], maze, stepPenalty, goalReward);
+
+                // get x',a'
+                int[] nextPrime = new int[2];
+                nextPrime = learnerUtils.greedy(next, maze, Q, epsilon);
+
                 log.add(next);
-                int nextReward = learnerUtils.getReward(next[0],next[1],maze,-1,9);
-                delta = nextReward + gamma*Q[next[0]][next[1]][nextDirection]-Q[x][y][direction];
-                E[x][y][direction] = 1;
-                updateQSarsaLambda(x,y,direction,delta);
-                E[x][y][direction] = gamma*E[x][y][direction]; // what is lambda here?
-                steps++;
+                nextDirection = learnerUtils.getDirection(next, nextPrime);
+
+                // get delta
+                double delta = getDelta(current,direction,next,nextDirection,reward);
+
+                // set e(s,a) to 1
+                E[current[0]][current[1]][direction] = 1;
+                // update each s,a
+                updateQSarsaLambda(delta);
+
+                // x <- x'
                 current = next;
-                x = current[0];
-                y = current[1];
+                next = nextPrime;
+
+                // a <- a'
                 direction = nextDirection;
+                steps++;
             }
 
             if(i == 850){
@@ -86,14 +101,35 @@ public class SarsaLambda {
     }
 
     /**
-     * updates Q sarsa
-     * @param x
-     * @param y
+     * calculates delta value
+     * @param current
      * @param direction
+     * @param next
+     * @param nextDirection
+     * @param reward
+     * @return
+     */
+    private double getDelta(int[] current, int direction, int[] next, int nextDirection, double reward){
+        double delta = reward - Q[current[0]][current[1]][direction];
+        if (maze[next[0]][next[1]] != goalReward) { // if not end of episode
+            delta += gamma * Q[next[0]][next[1]][nextDirection];
+        }
+        return delta;
+    }
+
+    /**
+     * updates E and Q matrices
      * @param delta
      */
-    private void updateQSarsaLambda(int x, int y, int direction, double delta) {
-        Q[x][y][direction] = Q[x][y][direction] + alpha*delta*E[x][y][direction];
+    private void updateQSarsaLambda(double delta) {
+        for (int j = 0; j < E.length; j++) {
+            for (int k = 0; k < E.length; k++) {
+                for (int a = 0; a < 4; a++) {
+                    Q[j][k][a] += alpha *delta*E[j][k][a];
+                    E[j][k][a] = gamma * lambda * E[j][k][a];
+                }
+            }
+        }
     }
 
 }
