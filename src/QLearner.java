@@ -1,80 +1,75 @@
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Random;
 
 /**
+ * Implements q-Learning
+ * Hits 7 steps consistently at about 851 runs
  * Created by emresonmez on 9/21/15.
  */
 public class QLearner {
-    int reward;
-    int step;
-    int[][] maze;
-    HashMap<Q,Integer> qTable = new HashMap<>();
+    private int goalReward;
+    private int stepPenalty;
+    private int[][] maze;
+    private double[][][] Q; // 0 1 2 3 for north, east, south, west
+    private int startX;
+    private int startY;
+    private double alpha = 0.1;
+    private double gamma = 0.95;
+    private double epsilon = 15;
+    private LearnerUtils learnerUtils;
+
 
     public QLearner(int reward, int step, int[][] maze) {
-        this.reward = reward;
-        this.step = step;
+        this.goalReward = reward;
+        this.stepPenalty = step;
         this.maze = maze;
-    }
-
-    public void qLearning() {
-        // state: current cell
-        // actions: proceed to any surrounding cell that is not 1
-        // calculate q learning
-
+        Q = new double[maze.length][maze.length][4];
+        startX = 8;
+        startY = 8;
+        learnerUtils = new LearnerUtils();
     }
 
     /**
-     * reward for going to a certain cell
-     * @param cell
-     * @return
+     * runs Q learning n times
+     * @param runs
+     * @throws MazeException
      */
-    private int getReward(Cell cell){
-        if(cell.getValue() == 0){
-            return step;
+    public void qLearning(int runs) throws MazeException {
+        ArrayList<int[]> log = new ArrayList<>();
+        for(int i = 0; i < runs; i++) {
+            int steps = 0;
+            int[] current = new int[2];
+            current[0] = startX;
+            current[1] = startY;
+
+            log.add(current);
+            while (maze[current[0]][current[1]] != 9) {
+                int[] next = learnerUtils.greedy(current, maze,Q,epsilon);
+                int direction = learnerUtils.getDirection(current,next);
+
+                log.add(next);
+                int reward = learnerUtils.getReward(next[0], next[1],maze,stepPenalty,goalReward);
+                updateQ(current[0], current[1],next[0],next[1],direction, reward);
+                steps++;
+                current = next;
+            }
+            if(i == 850){
+                epsilon = 0;
+            }
+            assert (log.size() == steps);
+            System.out.println("Run " + i + ", Steps: " + steps);
         }
-        if(cell.getValue() == 9){
-            return reward;
-        }
-        return 0;
     }
 
     /**
-     * returns valid cells as arraylist for any location on grid
-     * @param currentCell
-     * @return
+     * updates Q matrix
+     * @param x
+     * @param y
+     * @param direction
+     * @param r
      */
-    public ArrayList<Cell> getValidCells(Cell currentCell){
-        ArrayList<Cell> result = new ArrayList<>();
-        int x = currentCell.getX();
-        int y = currentCell.getY();
-        // check up
-        if(y+1 < maze.length){
-            if(maze[x][y+1] != 1){
-                Cell cUp = new Cell(x,y+1,maze[x][y+1]);
-                result.add(cUp);
-            }
-        }
-        // check down
-        if(y-1 >= 0){
-            if(maze[x][y-1] != 1){
-                Cell cDown = new Cell(x,y-1,maze[x][y+1]);
-                result.add(cDown);
-            }
-        }
-        // check left
-        if(x-1 >= 0){
-            if(maze[x-1][y] != 1){
-                Cell cLeft = new Cell(x-1,y,maze[x-1][y]);
-                result.add(cLeft);
-            }
-        }
-        // check right
-        if(x+1 < maze.length){
-            if(maze[x+1][y] != 1){
-                Cell cRight = new Cell(x+1,y,maze[x+1][y]);
-                result.add(cRight);
-            }
-        }
-        return result;
+    void updateQ(int x, int y, int nextX, int nextY, int direction, int r) {
+        Q[x][y][direction] += alpha * (r + gamma * learnerUtils.maxQVal(nextX,nextY,Q) - Q[x][y][direction]);
     }
+
 }
