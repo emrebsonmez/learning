@@ -13,4 +13,4 @@ Over time it is expected that all three algorithms converge on the "optimal" sol
 
 ### Sample Graph
 Below is a sample result from running the current version of the code with 20 trials (each with 200 runs).
-![Alt text](/graphs/200x10.png?raw=true "Sample Plot of 20 trials with 200 runs")
+![Alt text](/graphs/20x200.png?raw=true "Sample Plot of 20 trials with 200 runs")
