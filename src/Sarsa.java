@@ -48,8 +48,8 @@ public class Sarsa {
      * @param runs
      * @throws MazeException
      */
-    public void sarsaLearning(int runs) throws MazeException {
-        ArrayList<int[]> log = new ArrayList<>();
+    public ArrayList<Integer> sarsaLearning(int runs) throws MazeException {
+        ArrayList<Integer> log = new ArrayList<>();
 
         for(int i = 0; i < runs; i++) {
             int steps = 0;
@@ -71,7 +71,6 @@ public class Sarsa {
                 nextPrime = learnerUtils.greedy(next,maze,Q,epsilon);
 
                 // update Q
-                log.add(next);
                 nextDirection = learnerUtils.getDirection(next,nextPrime);
                 updateQsarsa(current[0],current[1],direction,next[0],next[1],nextDirection,reward,maze[current[0]][current[1]]==goalReward);
 
@@ -83,12 +82,9 @@ public class Sarsa {
                 direction = nextDirection;
                 steps++;
             }
-            if(i == 850){
-                epsilon = 0;
-            }
-            assert (log.size() == steps);
-            System.out.println("Run " + i + ", Steps: " + steps);
+            log.add(steps);
         }
+        return log;
     }
 
     /**

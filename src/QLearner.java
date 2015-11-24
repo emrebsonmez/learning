@@ -34,31 +34,26 @@ public class QLearner {
      * @param runs
      * @throws MazeException
      */
-    public void qLearning(int runs) throws MazeException {
-        ArrayList<int[]> log = new ArrayList<>();
+    public ArrayList<Integer> qLearning(int runs) throws MazeException {
+        ArrayList<Integer> log = new ArrayList<>();
         for(int i = 0; i < runs; i++) {
             int steps = 0;
             int[] current = new int[2];
             current[0] = startX;
             current[1] = startY;
 
-            log.add(current);
             while (maze[current[0]][current[1]] != 9) {
                 int[] next = learnerUtils.greedy(current, maze,Q,epsilon);
                 int direction = learnerUtils.getDirection(current,next);
 
-                log.add(next);
                 int reward = learnerUtils.getReward(next[0], next[1],maze,stepPenalty,goalReward);
                 updateQ(current[0], current[1],next[0],next[1],direction, reward);
                 steps++;
                 current = next;
             }
-            if(i == 850){
-                epsilon = 0;
-            }
-            assert (log.size() == steps);
-            System.out.println("Run " + i + ", Steps: " + steps);
+            log.add(steps);
         }
+        return log;
     }
 
     /**
