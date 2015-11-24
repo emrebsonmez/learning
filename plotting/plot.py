@@ -11,16 +11,17 @@ def parse(inputfile):
         values.append(line.split(" ")[1].strip())
     return indices,values
 
-def prepare():
+def prepare(runs,trials):
     plt.figure().patch.set_facecolor('white')
     plt.ylabel('Average Steps to Reach Goal')
-    plt.xlabel('Trial Number')
-    plt.title("Average Steps vs Trials for Learning Algorithms")
+    plt.xlabel('Run Number')
+    runTrialString = "(" + trials + " trials x " + runs + " runs)"
+    plt.title("Averaged Steps vs. Runs for Learning Algorithms " + runTrialString)
 
 def plot(argv):
-    prepare()
+    prepare(argv[1],argv[2])
     names = [];
-    for arg in argv[1:]:
+    for arg in argv[3:]:
         datFile = open(arg)
         parsed = parse(datFile)
         plt.plot(parsed[0],parsed[1])
@@ -29,7 +30,5 @@ def plot(argv):
     plt.legend(names)
     plt.show()
     return names
-
-
 
 plot(sys.argv)
