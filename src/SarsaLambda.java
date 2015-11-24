@@ -47,8 +47,8 @@ public class SarsaLambda {
      * @param runs
      * @throws MazeException
      */
-    public void sarsaLambdaLearning(int runs) throws MazeException {
-        ArrayList<int[]> log = new ArrayList<>();
+    public ArrayList<Integer> sarsaLambdaLearning(int runs) throws MazeException {
+        ArrayList<Integer> log = new ArrayList<>();
 
         for(int i = 0; i < runs; i++){
             E = new double[maze.length][maze.length][4];
@@ -60,8 +60,8 @@ public class SarsaLambda {
 
             // initial a
             int[] next = learnerUtils.greedy(current, maze, Q, epsilon);
-
             int direction = learnerUtils.getDirection(current,next);
+
             int nextDirection;
 
             while(maze[current[0]][current[1]] != 9) {
@@ -72,7 +72,6 @@ public class SarsaLambda {
                 int[] nextPrime = new int[2];
                 nextPrime = learnerUtils.greedy(next, maze, Q, epsilon);
 
-                log.add(next);
                 nextDirection = learnerUtils.getDirection(next, nextPrime);
 
                 // get delta
@@ -91,13 +90,9 @@ public class SarsaLambda {
                 direction = nextDirection;
                 steps++;
             }
-
-            if(i == 850){
-                epsilon = 0;
-            }
-            assert (log.size() == steps);
-            System.out.println("Run " + i + ", Steps: " + steps);
+            log.add(steps);
         }
+        return log;
     }
 
     /**
@@ -125,8 +120,8 @@ public class SarsaLambda {
         for (int j = 0; j < E.length; j++) {
             for (int k = 0; k < E.length; k++) {
                 for (int a = 0; a < 4; a++) {
-                    Q[j][k][a] += alpha *delta*E[j][k][a];
-                    E[j][k][a] = gamma * lambda * E[j][k][a];
+                    Q[j][k][a] += alpha*delta*E[j][k][a];
+                    E[j][k][a] = gamma*lambda*E[j][k][a];
                 }
             }
         }
