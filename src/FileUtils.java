@@ -24,9 +24,6 @@ public class FileUtils {
                 }
             }
         }
-//        for(Integer i:averages.keySet()){
-//            System.out.println(averages.get(i));
-//        }
         writeToFile(filename,averages);
     }
 
@@ -35,7 +32,6 @@ public class FileUtils {
         BufferedWriter writer = null;
         try{
             File file = new File(filename);
-            System.out.println(file.getCanonicalPath());
 
             writer = new BufferedWriter(new FileWriter(file));
             for(int i = 0; i < log.size(); i++){

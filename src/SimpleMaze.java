@@ -39,10 +39,10 @@ public class SimpleMaze {
     }
 
     private void populateWallCols(){
-        int[] cols1 = {2,4};
-        int[] cols2 = {4,5,6,7};
-        int[] cols3 = {2,3,4,7};
-        int[] cols4 = {2,4};
+        int[] cols1 = {2};
+        int[] cols2 = {4,5,7};
+        int[] cols3 = {2,4,7};
+        int[] cols4 = {2};
         int[] cols5 = {4,7};
         int[] cols6 = {1,2,4,5,6,7};
         int[] cols7 = {4};
